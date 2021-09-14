@@ -1,10 +1,3 @@
-/* This file is made by nHexanol, If you have any question feel free to contact me via discord or in-game message
-   you might need to modify the code to fit your server/guild.
-   This code isn't perfect and is in active development nowhere near finish any feedbacks is welcomed
-   Some part of the code have been removed
-    Discord : hexa#0420
-	I might aswell promote my work here : https://youtu.be/bpXrx5QSrm4
-*/
 const Discord = require('discord.js');
 const client = new Discord.Client()
 const fs = require('fs');
@@ -15,24 +8,36 @@ const util = require('util');
 const splArr = require('split-array');
 const d = new Date()
 const vega = require('vega');
-//const wynn = require('./wynncraft.js'); // my own wynncraft wrapper 
-const najax = require('najax');
-const $ = require('jquery');
-const Canvas = require('canvas');
+const wynn = require('./wynncraft.js');
+const $ = {};
+$.ajax = require('najax');
 const http = require('http');
 const fetch = require('node-fetch');
 const disbut = require('discord.js-buttons')(client);
 const spawn = require("child_process").spawn;
+const { createCanvas, loadImage } = require('canvas');
+const width = 1600;
+const height = 900
+const canvas = createCanvas(width, height);
+const ctx = canvas.getContext('2d');
+const terr_width = 1332;
+const terr_height = 759;
+const canvas2 = createCanvas(terr_width, terr_height);
+const ctx2 = canvas2.getContext('2d');
+
 const python_guilds = spawn("python3.9", ["guilds.py"]);
 const python_playtime = spawn("python3.9", ["Playtime.py"]);
-const sub = spawn("java", ['-jar sub.jar']);
+const java = spawn('java', ['-jar', 'sub.jar']);
+
 const port = 8080;
+var cache = "";
 var prefix = ".";
+var eat_prefix = ">";
 var previousGuildMemberCount = 0;
 var previousGuildMemberData = {};
 var currentGuildMemberCount = 0;
 var currentGuildMemberData = {}
-var pythonProcessDebug = false;
+var pythonProcessDebug = true;
 var terrClaimPingEnabled = false;
 var fetchObjInterval = 604800000;
 var claimInterval = 300000;
@@ -41,9 +46,39 @@ var memberObj = [];
 var applying = [];
 var alreadyPinged = false;
 var Role = '<@246865469963763713>';
+var claim_ping_role = "<@&722856382025564161>";
 const uint8arrayToString = function(data){
     return String.fromCharCode.apply(null, data);
 };
+var resources = [ "🐟", "🐟", "🐟","⛏️","💲 💲 ⛏️", "⛏️" ,"🌳", "🌳", "⛏️", "⛏️", "⛏️", "⛏️", "🌳", "🌳", "🌾", "⛏️", "⛏️ 🌿 🐟 🌳" ,"⛏️" ,"🌳" ,"⛏️" ,"🌳" , "⛏️", "⛏️" ,"⛏️ ⛏️" ,"⛏️" ,"🌿" ,"⛏️" ];
+var allies = [
+    "Avicia",
+    "Emorians",
+    "Guardian of Wynn",
+    "HackForums",
+    "IceBlue Team",
+    "The Simple Ones",
+    "Mystic Woods",
+    "Astrum Pantheon",
+    "Gopniks",
+    "Lux Nova",
+    "The Mage Legacy",
+    "Paladins United",
+    "Titans Valor",
+    "The Aquarium",
+    "The FishTank",
+    "TheNoLifes",
+    "ShadowFall",
+    "The Dark Phoenix",
+    "Jeus",
+    "Nefarious Ravens"
+];
+
+var cordX1 = [72, 118, 180, 264, 435, 726, 820, 290, 74, 469, 596, 726, 793, 1218, 1189, 186, 74, 469, 596, 726, 785, 185, 290, 185, 186, 642, 557];
+var cordX2 = [117, 179, 263, 356, 577, 619, 1051, 186, 185, 347, 481, 619, 973, 1065, 1066, 290, 185, 347, 482, 614, 973, 74, 186, 74, 289, 716, 637];
+var cordY1 = [201, 201, 201, 201, 270, 175, 260, 356, 355, 421, 421, 376, 456, 197, 312, 479, 477, 533, 533, 533, 642, 585, 586, 664, 664, 698, 698];
+var cordY2 = [64, 64, 64, 64, 70, 60, 78, 248, 248, 271, 271, 175, 272, 67, 219, 358, 358, 427, 426, 379, 457, 481, 481, 592, 593, 567, 568];
+
 var ESIClaims = [
 	'Swamp Mountain Transition Lower',
 	'Swamp Mountain Transition Mid',
@@ -74,6 +109,7 @@ var ESIClaims = [
 	'Iron Road'
   ]
 
+
 python_guilds.stdout.on('data', (data) => {
 	var output = uint8arrayToString(data);
 	console.log(uint8arrayToString(data));
@@ -85,6 +121,12 @@ python_playtime.stdout.on('data', (data) => {
 	console.log(uint8arrayToString(data));
 	if (pythonProcessDebug) client.channels.cache.get('784352935198064660').send(`\`\`\`\nPython stdout :\n${output}\n\`\`\``);
  });
+
+java.stdout.on('data', (data) => {
+	var output = uint8arrayToString(data);
+    console.log(uint8arrayToString(data));
+	if (pythonProcessDebug) client.channels.cache.get('784352935198064660').send(`\`\`\`\nJava stdout :\n${output}\n\`\`\``);
+});
 
 python_guilds.stderr.on('data', (data) => {
 	var output = uint8arrayToString(data);
@@ -98,6 +140,12 @@ python_playtime.stderr.on('data', (data) => {
 	if (pythonProcessDebug) client.channels.cache.get('784352935198064660').send(`\`\`\`\nPython stderr :\n${output}\n\`\`\``);
 });
 
+java.stderr.on('data', (data) => {
+	var output = uint8arrayToString(data);
+    console.log(uint8arrayToString(data));
+	if (pythonProcessDebug) client.channels.cache.get('784352935198064660').send(`\`\`\`\nJava stderr :\n${output}\n\`\`\``);
+});
+
 python_guilds.on('exit', (code) => {
     console.log("Process exited with code : " + code);
 });
@@ -106,19 +154,23 @@ python_playtime.on('exit', (code) => {
     console.log("Process exited with code : " + code);
 });
 
+java.on('exit', (code) => {
+	console.log('Process exited with code : ' + code);
+});
+
 function addApplying(name) {
 	applying.push(name);
 }
 
 client.on('ready', () => {
 	console.log('Logged in');
+	data_caching();
 })
 
 client.on('guildMemberAdd', member => {
-    client.channels.cache.get('554418045397762050').send(`Welcome ${member} to the Empire of Sindria Discord server! If you're looking to apply to ESI, please use \`.apply <ign>\` here or in <#554894605217169418>; if you're just visiting, have fun!`);
+//    client.channels.cache.get('554418045397762050').send(`Welcome ${member} to the Empire of Sindria Discord server! If you're looking to apply to ESI, please use \`.apply <ign>\` here or in <#554894605217169418>; if you're just visiting, have fun!`);
 });
 
-// a button test
 client.on('clickButton', async (button) => {
 	if (button.id === 'meow') {
 		button.channel.send({
@@ -214,6 +266,89 @@ client.on('clickButton', async (button) => {
 	}
 });
 
+client.on('message', mesg => {
+	if (mesg.channel.id == "622668875485675532" && mesg.author.id == "418413540857085972") {
+		client.channels.cache.get('622668875485675532').send({
+			files: ['./buffer.png']
+		})
+		.catch(console.log);
+	}
+});
+
+client.on('message', message => {
+	if (!message.content.startsWith(eat_prefix) || message.author.bot) return;
+	var args = message.content.slice(eat_prefix.length).trim().split(" ");
+	var cmd = args.shift().toLowerCase();
+
+
+
+	if (cmd == "eat" || cmd == "vore") {
+		var rand = Math.ceil(Math.random() * 5);
+		switch (rand) {
+			case 1:
+				file = "https://media.discordapp.net/attachments/855444056493391885/864417395857424404/0.gif";
+				break;
+			case 2:
+				file = "https://media1.tenor.com/images/d3b0f6cfa4dbf8ec178efaaf130412c7/tenor.gif?itemid=18100206";
+				break;
+			case 3:
+				file = "https://cdn.discordapp.com/attachments/855444056493391885/864417402614448135/3.gif";
+				break;
+			case 4:
+				file = "https://cdn.discordapp.com/attachments/855444056493391885/864417405827547146/2.gif";
+				break;
+			case 5:
+				file = "https://cdn.discordapp.com/attachments/855444056493391885/864417407186763776/4.gif";
+				break;
+		}
+
+		if (message.member.nickname == null) {
+			var nickname = message.member.displayName;
+		}
+		else if (message.member.nickname != null) {
+			var nickname = message.member.nickname;
+		}
+		if(!args[0]){
+			try {
+			var ate = "nothing xdrofl";
+			} catch (e) {
+				message.channel.send('An error has occured.')
+			}
+		}
+		if (!message.mentions.members.first()) {
+			try {
+				var ate = message.mentions.members.first().nickname;
+			}
+			catch (e) {
+				var ate = args.join(' ');
+			}
+
+		}else if (message.mentions.members.first().nickname == null) {
+			try {
+				var ate = message.mentions.members.first().displayName;
+			}
+			catch (e) {
+				message.channel.send('An error has occured.')
+			}
+		}
+
+		else if (message.mentions.members.first().nickname != null) {
+			try {
+				var ate = message.mentions.members.first().nickname;
+			}
+			catch (e) {
+				message.channel.send('An error has occured.')
+			}
+		}
+
+		const eat_embed = new Discord.MessageEmbed()
+			.setTitle(`${nickname} ate ${ate}`)
+			.setImage(file)
+
+		message.channel.send(eat_embed);
+	}
+});
+
 client.on('message', message => {
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
 	var args = message.content.slice(prefix.length).trim().split(" ");
@@ -223,10 +358,14 @@ client.on('message', message => {
 		client.users.cache.find(u => u.username === "Zinnig").send('oho');
 	}
 
-	if (cmd == "find") {
+		if (cmd == "find") {
+		if(!args[0]) return message.channel.send("Please provide a minecraft username to find...")
 		fetch(`https://api.wynncraft.com/v2/player/${args[0]}/stats`)
+
 		.then(res => res.json())
 		.then((json => {
+			if(json.code === 400) return message.channel.send("Minecraft username is not valid.")
+
 			if (!json.data[0].meta.location.online) var online = `${args[0]} is not currently online any Wynncraft server....`;
 			else if (json.data[0].meta.location.online) var online = `${args[0]} is currently on server ${json.data[0].meta.location.server}`;
 			message.channel.send(online);
@@ -252,7 +391,7 @@ client.on('message', message => {
 
 			if (args[0] == "-h" || args[0] == "--help" || typeof (args[0]) == 'undefined' || !args[0]) {
 				if (message.mentions.length > 0) {
-					var mentioned = message.mentions.first;
+					var mentioned = message.mentions.first();
 				}
 				const applyhelp = new Discord.MessageEmbed()
 					.setTitle('Application')
@@ -271,9 +410,6 @@ client.on('message', message => {
 				if (err) throw (err);
 				var data = JSON.parse(body);
 				if (data.data[0]) {
-					if (!data.data[0].username) {
-						return;
-					}
 					var username = data.data[0].username;
 					var guild = JSON.stringify(data.data[0].guild.name).replace('"', '').replace('"', '');
 					
@@ -667,10 +803,10 @@ client.on('message', message => {
                                 if (m.content == '.accept' && m.channel.id == result.id) {
 									m.channel.bulkDelete(1);
                                     m.channel.send("We are glad to inform you your application was accepted. After doing /gu join ESI the next time you're online, be sure to ask a fellow guild member for an invite to our discord, where we can provide you with more information there!");
-									let role = m.member.guild.roles.cache.find(role => role.name === "Squire");
-									if (role) m.guild.members.cache.get(message.author.id).roles.add(role);
-									let role2 = m.member.guild.roles.cache.find(role => role.name === "Sindrian Citizen");
-									if (role2) m.guild.members.cache.get(message.author.id).roles.add(role2);
+									let role = message.member.guild.roles.cache.find(role => role.name === "Squire");
+									if (role) message.guild.members.cache.get(message.author.id).roles.add(role);
+									let role2 = message.member.guild.roles.cache.find(role => role.name === "Sindrian Citizen");
+									if (role2) message.guild.members.cache.get(message.author.id).roles.add(role2);
 									message.member.setNickname(`Squire ${username}`);
 									accepted = true;
                                 }
@@ -714,7 +850,7 @@ client.on('message', message => {
 									let username = JSON.stringify(data.data[0].username).replace('"', '').replace('"', '');
 									let levelClassHighest = prevClass.toFixed(0);
 									let levelTotal = data.data[0].global.totalLevel.combined.toFixed(0);
-									message.guild.channels.cache.get(result.id).send(`Username : ${username}\nTotal Level: ${levelTotal}\nHighest Combat Level: ${levelClassHighest}\n\n<@${message.author.id}> Please check that your above details are correct and fill out the application form:\n\nPreferred Pronouns (optional):\nAge (optional):\nHow did you find ESI?\nHow can you contribute to ESI?\nWhat is your highest combat level class?\nHow active are you on Wynncraft?\nWhat do you enjoy about Wynncraft?\nBesides playing Wynn, what else do you enjoy doing?\nPrevious Guilds you’ve been in and why you’ve left them:\nAdditional Notes:`);
+									message.guild.channels.cache.get(result.id).send(`Username : ${username}\nTotal Level: ${levelTotal}\nHighest Combat Level: ${levelClassHighest}\n\n<@${message.author.id}> Please check that your above details are correct and fill out the application form:\n\nCountry/Timezone:\nPreferred Pronouns (optional):\nAge (optional):\nHow did you find ESI?\nHow can you contribute to ESI?\nWhat is your highest combat level class?\nHow active are you on Wynncraft?\nWhat do you enjoy about Wynncraft?\nBesides playing Wynn, what else do you enjoy doing?\nPrevious Guilds you’ve been in and why you’ve left them:\nAdditional Notes:`);
 								}
 							});
 						});
@@ -742,6 +878,8 @@ client.on('message', message => {
 
 			message.channel.send(guildEmbed);
 		}
+		var arr_counter = 0;
+		var storage = [];
 		var sUsername = "";
 		var sRank = "";
 		var sServer = "";
@@ -757,6 +895,7 @@ client.on('message', message => {
 			guPrefix = gu.prefix;
 			var counter = [];
 			var onlineList = 0;
+            var final_sorttemplate = ["\\*\\*\\*\\*\\*", "\\*\\*\\*\\*", "\\*\\*\\*", "\\*\\*", "\\*", "", "UNKWN"];
 			var rankOrder = ["OWNER", "CHIEF", "STRATEGIST", "CAPTAIN", "RECRUITER", "RECRUIT"];
 			sortedMembers = gu.members.sort((a,b) => {return rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank)});
 			for (const m in sortedMembers) {
@@ -791,6 +930,11 @@ client.on('message', message => {
 							fRank = "UNKWN";
 					}
 					onlineList++;
+					storage[arr_counter] = {};
+					storage[arr_counter].name = json.data[0].username;
+					storage[arr_counter].rank = fRank;
+					storage[arr_counter].server = json.data[0].meta.location.server;
+					arr_counter++;
 					sUsername = sUsername.concat(`${json.data[0].username}\n`);
 					sRank = sRank.concat(`${fRank}\n`);
 					sServer = sServer.concat(`${json.data[0].meta.location.server}\n`);
@@ -798,14 +942,24 @@ client.on('message', message => {
 				}
 				}).then(function () {
 					if (counter.length == gu.members.length - 1) {
-						console.log(sUsername);
+						var sorted = storage.sort((a, b) => {return final_sorttemplate.indexOf(a.rank) - final_sorttemplate.indexOf(b.rank)});
+						console.log(storage);
+						console.log(sorted);
 						if (sUsername.length == 0) {
 							sUsername = "*<none>*"; 
 							sRank = "-"; 
 							sServer = "-";
 						}
+                        var sorted_username = "";
+                        var sorted_rank = "";
+                        var sorted_server = "";
+                        for (var usr in storage) {
+                            sorted_username = sorted_username.concat(`${storage[usr]["name"]}\n`);
+                            sorted_rank = sorted_rank.concat(`${storage[usr]["rank"]}\n`);
+                            sorted_server = sorted_server.concat(`${storage[usr]["server"]}\n`);
+                        }
 						sUsername = sUsername.replace(/_/g, "\\_");
-						sendData(gu.name, gu.prefix, sUsername, sRank, sServer, onlineList, gu.members.length, gu.level);
+                        sendData(gu.name, gu.prefix, sorted_username, sorted_rank, sorted_server, onlineList, gu.members.length, gu.level);
 						console.log(`${gu.name} (${gu.prefix})\n${sUsername} ${sRank} ${sServer}`);
 						console.log(`${m} ${gu.members.length}`);
 						}
@@ -822,29 +976,37 @@ client.on('message', message => {
 	}
 
 	else if (cmd == "ls") {
-		function sendData (players, count) {
-			const playerls = new Discord.MessageEmbed()
-			.setTitle('Player list')
-			.setColor('#009eff')
-			.setDescription(`\`\`\`\n${players}\n\`\`\``)
-			.setFooter(`${count} players online`)
-			message.channel.send(playerls);
+		const playerls = new Discord.MessageEmbed()
+			
+		playerls.setColor('#009eff')
+
+	if (args.length == 0) return message.channel.send(`Usage : \`${prefix}ls (world)\``);
+  
+	if (isNaN(args[0])) return message.channel.send("Argument must contain number.");
+	
+	var output = "";
+	var playerCounter = 0;
+	
+	var input = "WC" + args[0]
+	fetch('https://api.wynncraft.com/public_api.php?action=onlinePlayers')
+	.then(res => res.json())
+	.then(function (json) {
+		if(!json[input]) return message.channel.send("That world doesn't exist. (According to wynncraft api)")
+		inputFormatted = json[input];
+		for (const m in inputFormatted) {
+			inputFormatted = json[input];	output = output.concat(`${inputFormatted[m]}\n`);
+			playerCounter++
 		}
-		if (args.length == 0) return message.channel.send(`Usage : \`${prefix}ls (world)\``);
-		var input = parseInt(args[0]);
-		var output = "";
-		var playerCounter = 0;
-		if (!typeof(input) == "number") return message.channel.send("Argument must contain number.");
-		fetch('https://api.wynncraft.com/public_api.php?action=onlinePlayers')
-		.then(res => res.json())
-		.then(function (json) {
-			inputFormatted = json[`WC${input}`];
-			for (const m in inputFormatted) {
-				inputFormatted = json[`WC${input}`];	output = output.concat(`${inputFormatted}\n`);
-				playerCounter++
-			}
-			sendData(output, playerCounter);
-		});
+
+		
+		playerls.setTitle(`Player list for ${input}`)
+		 playerls.setDescription(`\`\`\`\n${output}\n\`\`\``)
+		playerls.setFooter(`${playerCounter} players online`)
+		message.channel.send(playerls)
+	
+	
+		
+	});
 	}
 
 	else if (cmd == "requestGuild") {
@@ -906,7 +1068,7 @@ client.on('message', message => {
 	}
 
 	else if (cmd == 'terr') {
-
+		// old territory manager
 		if (!args[0] || args[0] == 'help') {
 			message.channel.send({
 				files: ['./terrmanagerhelpunfinished.png']
@@ -1026,34 +1188,521 @@ client.on('message', message => {
 		}
 	}
 
-else if (cmd == "function") {
+else if (cmd == "function" && (message.author.id == "246865469963763713" || message.member.roles.cache.has('600185623474601995'))) {
 	try {
 	return eval(`${args[0]}(message);`);
 	}
-	catch (err) {
+	catch(err) {
 		message.channel.send(`\`\`\`js\n${err}\n\`\`\``);
 	}
 }
 
+else if (cmd == "p") {
+	var rand = Math.round(Math.random());
+	if (rand == 0) {
+		var colour = '#fff';
+	}
+	else if (rand == 1) {
+		var colour = '#000';
+	}
+	fetch(`https://api.wynncraft.com/v2/player/${args[0]}/stats`)
+	.then(res => res.json())
+	.then(function (json) {
+	if (!json.data[0]) {
+		message.channel.send('Username not found.');
+		return;
+	}
+		var highest_class = json.data[0].classes[0].name.replace(/([0-9])/g, "");
+		switch (highest_class) {
+			case "mage":
+				highest_class = "Mage";
+				break;
+			case "shaman":
+				highest_class = "Shaman";
+				break;
+			case "assassin":
+				highest_class = "Assassin";
+				break;
+			case "warrior":
+				highest_class = "Warrior";
+				break;
+			case "archer":
+				highest_class = "Archer";
+				break;
+			case "darkwizard":
+				highest_class = "Dark Wizard";
+				break;
+			case "skyseer":
+				highest_class = "Skyseer";
+				break;
+			case "knight":
+				highest_class = "Knight";
+				break;
+			case "ninja":
+				highest_class = "Ninja";
+				break;
+			case "hunter":
+				highest_class = "Hunter";
+				break;
+			default:
+				highest_class = "Unknown";
+				break;
+		}
+
+		if (!json.data[0].username) {
+			message.channel.send('Username not found !');
+			return;
+		}
+		async function send_img() {
+			message.channel.send({
+				files: [`./player.png`]
+			});
+		}
+	
+		function save() {
+			const buffer = canvas.toBuffer('image/png');
+			fs.writeFileSync('./player.png', buffer);
+		}
+
+		async function load(rand) {
+			loadImage(`./${rand}.png`)
+			.then((image) => {
+				ctx.drawImage(image, 0, 0, width, height);
+			});
+		}
+		if (!json.data[0].meta.location.online) {
+		var lastSeen = Date.now() - Date.parse(json.data[0].meta.lastJoin)
+			years = Math.floor(lastSeen / (365 * 24 * 60 * 60 * 1000));
+			days = Math.floor((lastSeen - years * (365 * 24 * 60 * 60 * 1000)) / (24 * 60 * 60 * 1000));
+			hours = Math.floor((lastSeen - years * (365 * 24 * 60 * 60 * 1000) - days * (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+			minutes = Math.floor((lastSeen - years * (365 * 24 * 60 * 60 * 1000) - days * (24 * 60 * 60 * 1000) - hours * (60 * 60 * 1000)) / (60 * 1000));
+			output = `${years > 0 ? years + " yr " : ""}${days > 0 ? days + " d " : ""}${hours > 0 ? hours + " hr " : ""}${minutes > 0 ? minutes + " min " : ""}`;
+			output = (output[output.length - 1] == ":" ? output.slice(0, -1) : output).concat('ago');
+		}
+		else if (json.data[0].meta.location.online) output = "Online";
+	
+		async function add() {
+			await load(rand);   //wait for the image to load
+			//username, tag and online
+			ctx.font = 'bold 55pt Ubuntu';
+			ctx.textAlign = 'left';
+			ctx.fillStyle = colour;
+			ctx.fillText(`${json.data[0].username}`, 75, 125);
+			var textWidth = ctx.measureText(json.data[0].username).width;
+			ctx.font = '55pt Ubuntu';
+			if (json.data[0].meta.tag.value != null) {
+				if (json.data[0].meta.location.online) {
+				ctx.fillText(`[${json.data[0].meta.tag.value}]  [${json.data[0].meta.location.server}]`, textWidth + 100, 125)
+				}
+				else if (!json.data[0].meta.location.online) {
+				ctx.fillText(`[${json.data[0].meta.tag.value}]`, textWidth + 100, 125)
+				}
+			}
+			//guild and their rank
+			if (json.data[0].guild.name == null) {
+				var guild = "No guild"
+			}
+			else if (json.data[0].guild.name != null) {
+				var guild = `${json.data[0].guild.rank}  of  ${json.data[0].guild.name}`
+			}
+			ctx.font = '35pt Ubuntu';
+			ctx.fillText(`${guild}`, 75, 195);
+			
+			// informations
+			ctx.font = 'bold 45pt Ubuntu';
+			ctx.fillText('Total level  :', 75, 300);
+			var textWidth = ctx.measureText("Total level  :").width;
+			ctx.font = '45pt Ubuntu';
+			ctx.fillText(`C ${json.data[0].global.totalLevel.combat.toLocaleString('en-US')} + P ${json.data[0].global.totalLevel.profession.toLocaleString('en-US')} = ${json.data[0].global.totalLevel.combined.toLocaleString('en-US')}`, 100 + textWidth, 300);
+	
+			ctx.font = 'bold 45pt Ubuntu';
+			ctx.fillText('Total playtime  :', 75, 375);
+			var textWidth = ctx.measureText("Total playtime  :").width;
+			ctx.font = '45pt Ubuntu';
+			ctx.fillText(`${Math.round(Math.floor(json.data[0].meta.playtime)/60*4.7).toLocaleString('en-US')} hours`, 100 + textWidth, 375);
+	
+			ctx.font = 'bold 45pt Ubuntu';
+			ctx.fillText('Total mobs killed  :', 75, 450);
+			var textWidth = ctx.measureText("Total mobs killed  :").width;
+			ctx.font = '45pt Ubuntu';
+			ctx.fillText(`${json.data[0].global.mobsKilled.toLocaleString('en-US')} mobs`, 100 + textWidth, 450);
+	
+			ctx.font = 'bold 45pt Ubuntu';
+			ctx.fillText('Total chests opened  :', 75, 525);
+			var textWidth = ctx.measureText("Total chests opened  :").width;
+			ctx.font = '45pt Ubuntu';
+			ctx.fillText(`${json.data[0].global.chestsFound.toLocaleString('en-US')} chests`, 100 + textWidth, 525);
+	
+			ctx.font = 'bold 45pt Ubuntu';
+			ctx.fillText('Logins/Deaths  :', 75, 600);
+			var textWidth = ctx.measureText("Logins/Deaths  :").width;
+			ctx.font = '45pt Ubuntu';
+			ctx.fillText(`${json.data[0].global.logins.toLocaleString('en-US')}/${json.data[0].global.deaths.toLocaleString('en-US')} times`, 100 + textWidth, 600);
+	
+			// last seen
+			ctx.font = 'bold 45pt Ubuntu';
+			ctx.fillText('Last seen  :', 75, 675);
+			var textWidth = ctx.measureText("Last seen  :").width;
+			ctx.font = '45pt Ubuntu';
+			ctx.fillText(`${output}`, 100 + textWidth, 675);
+	
+			var firstJoin = Date.now() - Date.parse(json.data[0].meta.firstJoin)
+			years = Math.floor(firstJoin / (365 * 24 * 60 * 60 * 1000));
+			days = Math.floor((firstJoin - years * (365 * 24 * 60 * 60 * 1000)) / (24 * 60 * 60 * 1000));
+			hours = Math.floor((firstJoin - years * (365 * 24 * 60 * 60 * 1000) - days * (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+			minutes = Math.floor((firstJoin - years * (365 * 24 * 60 * 60 * 1000) - days * (24 * 60 * 60 * 1000) - hours * (60 * 60 * 1000)) / (60 * 1000));
+			output = `${years > 0 ? years + " yr " : ""}${days > 0 ? days + " d " : ""}${hours > 0 ? hours + " hr " : ""}${minutes > 0 ? minutes + " min " : ""}`;
+			output = output[output.length - 1] == ":" ? output.slice(0, -1) : output;
+	
+			ctx.font = 'bold 45pt Ubuntu';
+			ctx.fillText('Joined  :', 75, 750);
+			var textWidth = ctx.measureText("Joined  :").width;
+			ctx.font = '45pt Ubuntu';
+			ctx.fillText(`${output}ago`, 100 + textWidth, 750);
+	
+			ctx.font = 'bold 45pt Ubuntu';
+			ctx.fillText('Highest leveled class  :', 75, 825);
+			var textWidth = ctx.measureText("Highest leveled class  :").width;
+			ctx.font = '45pt Ubuntu';
+			ctx.fillText(`${highest_class} [${json.data[0].classes[0].professions.combat.level}/${json.data[0].classes[0].level.toLocaleString('en-US')}]`, 100 + textWidth, 825);
+
+			ctx.font = '25pt Ubuntu';
+			ctx.textAlign = 'right'
+			ctx.fillStyle = "#fff";
+			ctx.globalAlpha = 0.1;
+			ctx.fillText(`Coded by nHexanol || Empire of Sindria`, width, 25);
+			ctx.globalAlpha = 1;
+		}
+			add();
+			setTimeout(save, 1);
+			send_img();
+	})
+	.catch(function (error) {
+		console.log(error);
+	});
+}
+else 	if(cmd == "tl"){
+		const playerls = new Discord.MessageEmbed()
+		var output = "";
+		playerls.setColor('#009eff')
+
+		man = 0;
+		if(!args[0]) return message.channel.send("Please provide a guild's tag (no name XD)")
+		let gprefix = args[0].toLowerCase()
+		let terrs = []
+		fetch('https://athena.wynntils.com/cache/get/territoryList')
+		.then(response => response.json())
+		.then(json => {
+			
+			for (var g in json.territories) {
+				let guprefix = json.territories[g].guildPrefix.toLowerCase()
+				if(guprefix === gprefix){
+					man++
+				terrs.push(`${man}. ${json.territories[g].territory}`);
+				}
+			}
+			if(terrs.length === 0) {
+				terrs.push(`${gprefix} has 0 territories.`);
+				}
+				for (var m in terrs) {
+					output = output.concat(`${terrs[m]}\n`)
+				}
+				playerls.setTitle(`Territory list for ${gprefix}`)
+				playerls.setDescription(`\`\`\`\n${output}\n\`\`\``)
+			   playerls.setFooter(`${gprefix} has ${man} territories`)
+			   message.channel.send(playerls)
+		})
+	}
+else if (cmd == "gs") {
+	if (args.length == 0) var guild = "Empire+of+Sindria";
+	else if (args.length != 0) var guild = message.content.replace(`${prefix}${cmd} `, '').replace(/ /g, "+");
+	fetch(`https://api.wynncraft.com/public_api.php?action=guildStats&command=${guild}`)
+	.then(res => res.json())
+	.then(function (json) {
+
+		var owner = json.members.find(m => m.rank == "OWNER")
+
+	async function send_img() {
+		message.channel.send({
+			files: [`./gstat.png`]
+		});
+	}
+
+	function save() {
+		const buffer = canvas.toBuffer('image/png');
+		fs.writeFileSync('./gstat.png', buffer);
+	}
+
+	async function load() {
+		loadImage(`./gs.png`)
+		.then((image) => {
+			ctx.drawImage(image, 0, 0, width, height);
+		});
+	}
+
+	async function add() {
+		await load();
+		//put all the canvas here
+		ctx.font = 'bold 55pt Ubuntu';
+		ctx.textAlign = 'left';
+		ctx.fillStyle = '#fff';
+		ctx.fillText(`${json.name}`, 75, 125);
+		var textWidth = ctx.measureText(json.name).width;
+		ctx.font = '55pt Ubuntu';
+		ctx.fillText(`[${json.prefix}]`, 125 + textWidth, 125);
+		ctx.font = '35pt Ubuntu';
+		ctx.fillText(`Owned by `, 75, 185);
+		var textWidth = ctx.measureText('Owned by ').width;
+		ctx.font = 'bold 35pt Ubuntu';
+		ctx.fillText(`${owner.name}`, 75 + textWidth, 185);
+
+		ctx.font = 'bold 45pt Ubuntu';
+		var textWidth = ctx.measureText("Level  :").width;
+		ctx.fillText('Level  :', 75, 300);
+		ctx.font = '45pt Ubuntu';
+		ctx.fillText(`${json.level}  |  ${json.xp*10}%`, 125 + textWidth, 300);
+
+		ctx.font = 'bold 45pt Ubuntu';
+		var textWidth = ctx.measureText("Created  :").width;
+		ctx.fillText('Created  :', 75, 375);
+		ctx.font = '45pt Ubuntu';
+		ctx.fillText(`${json.createdFriendly}`, 125 + textWidth, 375);
+
+		ctx.font = 'bold 45pt Ubuntu';
+		var textWidth = ctx.measureText("Total members  :").width;
+		ctx.fillText('Total members  :', 75, 450);
+		ctx.font = '45pt Ubuntu';
+		ctx.fillText(`${json.members.length}`, 125 + textWidth, 450);
+
+		ctx.font = 'bold 45pt Ubuntu';
+		var textWidth = ctx.measureText("Total territories  :").width;
+		ctx.fillText('Total territories  :', 75, 525);
+		ctx.font = '45pt Ubuntu';
+		ctx.fillText(`${json.territories}`, 125 + textWidth, 525);
+
+
+		//credits
+		ctx.font = '25pt Ubuntu';
+		ctx.textAlign = 'right'
+		ctx.fillStyle = "#fff";
+		ctx.globalAlpha = 0.25;
+		ctx.fillText(`Coded by nHexanol || Empire of Sindria`, width, 25);
+		ctx.globalAlpha = 1;
+	}
+	add();
+	setTimeout(save, 1);
+	send_img();
+})
+.catch(function (error) {
+	message.channel.send('An error has occured.');
+});
+}
+
 else if (cmd == "sp") {
+	var world_arr = [];
+	var sorted_worlds = [];
+	var offset = parseInt(args[0]) * 60000;
+	if (isNaN(offset)) offset = -120000;
 	fetch('https://athena.wynntils.com/cache/get/serverList')
 	.then(res => res.json())
 	.then(json => {
-		var sortedWC = json.sort((d1, d2) => {
-			return d1.firstSeen - d2.firstSeen
-		});
-		var buffered = "";
+
+		async function send_img() {
+			message.channel.send({
+				files: [`./sp.png`]
+			});
+		}
+		function save() {
+			const buffer = canvas.toBuffer('image/png');
+			fs.writeFileSync('./sp.png', buffer);
+		}
+		async function load() {
+			loadImage(`./sp.png`)
+			.then((image) => {
+				ctx.drawImage(image, 0, 0, width, height);
+			});
+		}
+
+		// sp regen every 1200000 ms
+
+		for (let world in json.servers) {
+			world_arr.push([world, Date.now() - json.servers[world].firstSeen]);
+		}
+		sorted_worlds = world_arr.sort((a, b) => {return a[1] -b[1]});
+
+		for (let fsorted in sorted_worlds) {
+			sorted_worlds[fsorted][1] = 20 - ((sorted_worlds[fsorted][1] - offset) % 1200000 / 1000 / 60);
+		}
+		sorted_worlds = sorted_worlds.sort((a, b) => {return a[1] -b[1]});
+		for (let fsorted in sorted_worlds) {
+			sorted_worlds[fsorted][1] = Math.ceil(sorted_worlds[fsorted][1]);
+			for (var world_name_length = sorted_worlds[fsorted][0].length; world_name_length < 4 ; world_name_length++) {
+				sorted_worlds[fsorted][0].concat(' ');
+			}
+		}
+		console.log(sorted_worlds);
+		async function add() {
+			await load();
+
+			ctx.font = 'bold 55pt Ubuntu';
+			ctx.textAlign = 'left';
+			ctx.fillStyle = '#fff';
+			ctx.fillText(`Soul Points`, 75, 125);
+			var textWidth = ctx.measureText('Soul Points  ').width;
+			if (!offset == 0) {
+				ctx.font = '55pt Ubuntu';
+				ctx.fillText(`[ ${offset/60000} minute(s) offset ]`, 75 + textWidth, 125);
+			}
+			ctx.font = '35pt Ubuntu';
+			ctx.fillText(`Time until next Soul Point regen. Stolen from Zinnig.`, 75, 185);
+
+			// 75 150 225 300 375 425 500 575 650 725 800
+				if (sorted_worlds.length < 8) {
+					console.log(8);
+					for (var spworld in sorted_worlds) {
+						ctx.font = 'bold 45pt Ubuntu';
+						ctx.fillText(`${sorted_worlds[spworld][0]}  `, 75, 300 + (spworld * 75));
+						var textWidth = ctx.measureText(`${sorted_worlds[spworld][0]}  `).width;
+						ctx.font = '45pt Ubuntu';
+						ctx.fillText(`${sorted_worlds[spworld][1]} min`, 210 + 85, 300 + (spworld * 75));
+						if (spworld == 8) break;
+					}
+				}
+				else if (sorted_worlds.length > 8 && sorted_worlds < 17) {
+					console.log(19);
+					for (var spworld = 0; spworld < 9; spworld++) {
+						ctx.font = 'bold 45pt Ubuntu';
+						ctx.fillText(`${sorted_worlds[spworld][0]}  `, 75, 300 + (spworld * 75));
+						var textWidth = ctx.measureText(`${sorted_worlds[spworld][0]}  `).width;
+						ctx.font = '45pt Ubuntu';
+						ctx.fillText(`${sorted_worlds[spworld][1]} min`, 210 + 85, 300 + (spworld * 75));
+					}
+					for (var spworld = 9; spworld < sorted_worlds.length; spworld++) {
+						ctx.font = 'bold 45pt Ubuntu';
+						ctx.fillText(`${sorted_worlds[spworld][0]}  `, 31 + 485 + 85, 300 + ((spworld - 8) * 75));
+						var textWidth = ctx.measureText(`${sorted_worlds[spworld][0]}  `).width;
+						ctx.font = '45pt Ubuntu';
+						ctx.fillText(`${sorted_worlds[spworld][1]} min`, 31 + 210 + 85 + 485, 300 + ((spworld - 8) * 75));
+					}
+				}
+				else if (sorted_worlds.length >= 19) {
+					console.log('more than 19');
+					for (var spworld = 0; spworld < 8; spworld++) {
+						ctx.font = 'bold 45pt Ubuntu';
+						ctx.fillText(`${sorted_worlds[spworld][0]}  `, 75, 300 + (spworld * 75));
+						var textWidth = ctx.measureText(`${sorted_worlds[spworld][0]}  `).width;
+						ctx.font = '45pt Ubuntu';
+						ctx.fillText(`${sorted_worlds[spworld][1]} min`, 210 + 85, 300 + (spworld * 75));
+					}
+					for (var spworld = 8; spworld < 16; spworld++) {
+						ctx.font = 'bold 45pt Ubuntu';
+						ctx.fillText(`${sorted_worlds[spworld][0]}  `, 31 + 485 + 85, 300 + ((spworld - 8) * 75));
+						var textWidth = ctx.measureText(`${sorted_worlds[spworld][0]}  `).width;
+						ctx.font = '45pt Ubuntu';
+						ctx.fillText(`${sorted_worlds[spworld][1]} min`, 31 + 210 + 85 + 485, 300 + ((spworld - 8) * 75));
+						if (spworld == 16) break;
+					}
+					for (var spworld = 16; spworld < 24; spworld++) {
+						ctx.font = 'bold 45pt Ubuntu';
+						ctx.fillText(`${sorted_worlds[spworld][0]}  `, 62 + 970 + 85, 300 + ((spworld - 16) * 75));
+						var textWidth = ctx.measureText(`${sorted_worlds[spworld][0]}  `).width;
+						ctx.font = '45pt Ubuntu';
+						ctx.fillText(`${sorted_worlds[spworld][1]} min`, 62 + 210 + 85 + 970, 300 + ((spworld - 16) * 75));
+						if (spworld == 24) break;
+					}
+				}
+
+		//credits
+		ctx.font = '25pt Ubuntu';
+		ctx.textAlign = 'right'
+		ctx.fillStyle = "#fff";
+		ctx.globalAlpha = 0.1;
+		ctx.fillText(`Coded by nHexanol || Empire of Sindria`, width, 25);
+		ctx.globalAlpha = 1;
+		}
+
+	add();
+	setTimeout(save, 1);
+	send_img();
+		})
+	.catch(function (error) {
+		message.channel.send(`An error has occured.`);
+		console.log(error);
 	})
 }
+
+	else if (cmd == "terrls") {
+		territories_feed(message);
+	}
+
+	else if (cmd == "pt") {
+		function send_data(username, pt) {
+			const playtime_embed = new  Discord.MessageEmbed()
+			.setTitle(`Playtime (${days_back}d)`)
+			.setColor('#8e059e')
+			.addFields(
+				{name: "Name", value: `t${username}`, inline: true},
+				{name: "Playtime", value: `t${pt}`, inline: true},
+			)
+			console.log(`${username} ${pt}`);
+			message.channel.send(playtime_embed);
+		}
+		if (args.length < 1) {
+			days_back = 14;
+		}
+		else if (args[0] && args[0] != "-r") {
+			days_back = parseInt(args[0]);
+		}
+		var pt_data_now = fs.readFileSync(`./playtime/${Math.ceil(Date.now() / 86400000)}.txt`);
+		var pt_data = fs.readFileSync(`./playtime/${Math.ceil(Date.now() / 86400000) - days_back}.txt`);
+		var playtime_old = JSON.parse(pt_data);
+		var playtime_now = JSON.parse(pt_data_now);
+
+		var members_name = "";
+		var members_pt = "";
+		// [0] username, [1] playtime
+		for (var player in playtime_old) {
+				var hrs_old = Math.trunc(playtime_old[player][1]/60*4.7);
+				var mins_old = (hrs_old - playtime_old[player][1]/60*4.7).toFixed(2) * 60;
+
+				var hrs_now = Math.trunc(playtime_now[player][1]/60*4.7);
+				var mins_now = (hrs_now - playtime_now[player][1]/60*4.7).toFixed(2) * 60;
+
+				console.log(hrs_old + hrs_now);
+				
+				members_name += `${playtime_old[player][0].replace(/_/g, "\\_")}\n`;
+				console.log(members_name);
+				members_pt += `${hrs_now - hrs_old}h ${mins_now - mins_old}m\n`;
+		}
+		var embed_count = Math.floor(playtime_old.length) / 10;
+		var s = playtime_old.length % 10
+
+		var playtime_embed = new  Discord.MessageEmbed()
+		.setTitle(`Playtime (${days_back}d)`)
+		.setColor('#8e059e')
+		.addFields(
+			{name: "Name", value: `t${members_name}`, inline: true},
+			{name: "Playtime", value: `${members_pt}`, inline: true},
+		)
+		console.log(`${members_name} ${members_pt}`);
+		message.channel.send(playtime_embed);
+	}
 
 	else if (cmd == 'ev' && (message.author.id == 246865469963763713 || message.author.id == 723715951786328080 || message.author.id == 475440146221760512 || message.author.id == 330509305663193091 || message.author.id == 722992562989695086 || message.author.id == 282964164358438922)) {
 		//eval, for debugging purpose don't use if not nessessary
 		var cmd = "";
+		if message.content.includes('client.token') {
+			message.channel.send("no");
+			return;
+		}
 		for (var i = 0; i < args.length; i++) {
 			var cmd = cmd.concat(` ${args[i]}`);
 		}
 		try {
 			var out = eval(cmd);
+			if (out.includes(client.token)) {
+				out.replace(client.token, "Token");
+			}
 			var out = util.inspect(out);
 			const Evaluate = new Discord.MessageEmbed()
 				.setColor('#ffaa33')
@@ -1075,6 +1724,14 @@ else if (cmd == "sp") {
 	}			
 });
 
+function data_caching() {
+	fetch('https://api.wynncraft.com/public_api.php?action=guildStats&command=Empire+of+Sindria')
+	.then(res => res.json())
+	.then(function (json) {
+		cache = json;
+	})
+}
+
 function guildMemberUpdateListener() {
 	var currentGuildMemberData = {};
 	fetch('https://api.wynncraft.com/public_api.php?action=guildStats&command=Empire+of+Sindria')
@@ -1095,6 +1752,392 @@ function guildMemberUpdateListener() {
 			console.log(parsedRemovedDiffler);
 		}
 	})
+}
+//server list
+function playtime_logger() {
+	var online_player_pt = "";
+	var guild_member_arr = [];
+	fetch('https://api.wynncraft.com/public_api.php?action=onlinePlayers')
+	.then(res => res.json())
+	.then(json => {
+		online_player_pt = JSON.stringify(json);
+	})
+	.catch((error) => {
+		client.channels.cache.get('784352935198064660').send(`\`\`\`js\n${error}\n\`\`\``);
+	});
+// guild stats
+	fetch("https://api.wynncraft.com/public_api.php?action=guildStats&command=Empire+of+Sindria")
+	.then(res => res.json())
+	.then(data => {
+		//var playtime = [];
+		//var playtime[i] = JSON.parse(fs.readFileSync(`./playtime/${(Date.now() / 86400000)}`, {encoding:'utf8', flag:'r'}))
+		for(var i in data.members) {
+			if (online_player_pt.includes(data.members[i].username)) {
+			//	playtime[i].push([`${data.members[i]}`, ``])
+			}
+		}
+	})
+	.catch((error) => {
+		client.channels.cache.get('784352935198064660').send(`\`\`\`js\n${error}\n\`\`\``);
+	});
+}
+
+var lost_count_old = 0;
+function claim_ping() {
+	var lost_count = 0;
+	fetch('https://api.wynncraft.com/public_api.php?action=territoryList')
+    .then(res => res.json())
+    .then(function (json) {
+        function save() {
+            const buffer = canvas2.toBuffer('image/png');
+            fs.writeFileSync('./buffer.png', buffer);
+        }
+
+		function send_terr() {
+			alreadyPinged = true;
+			setTimeout(resetPingCounter, 32400000);
+			client.channels.cache.get('606713555911311370').send(`${claim_ping_role}` , {
+				files: ['./buffer.png']
+			})
+			.catch(function (error) {
+				client.channels.cache.get('An error has occured.');
+				client.channels.cache.get('784352935198064660').send(`\`\`\`js\n${error}\n\`\`\``);
+				console.log(error);
+			})
+		}
+
+        async function load_base() {
+            loadImage(`./asset/ESI.png`)
+                .then((image) => {
+                    ctx2.drawImage(image, 0, 0, terr_width, terr_height);
+                });
+        }
+        async function add() {
+            await load_base();   //wait for the image to load
+            // trade route
+            await loadImage('./asset/trade_route.png')
+            .then(trimg => {
+            ctx2.globalAlpha = 0.5;
+            ctx2.drawImage(trimg, 0, 0, terr_width, terr_height);
+            ctx2.globalAlpha = 1;
+            })
+            .catch(function (error) {
+                console.log(error)
+            });
+            var name_arr = [];
+            for (var t in cordX1) {
+                //check owner
+                var terr_overlay_colour = "#ffffff";
+                var lost = false;
+                if (json.territories[`${ESIClaims[t]}`].guild != "Empire of Sindria" && !allies.includes(json.territories[`${ESIClaims[t]}`].guild)) {
+                    lost = true;
+					lost_count++
+                    terr_overlay_colour = "#ff2934";
+                }
+                else if (allies.includes(json.territories[`${ESIClaims[t]}`].guild)) {
+                    terr_overlay_colour = "#69c5ff";
+                }
+                else if (json.territories[`${ESIClaims[t]}`].guild == "Empire of Sindria") {
+                    terr_overlay_colour = "#94ffb1";
+                }
+                // fill rect overlay
+                ctx2.fillStyle = terr_overlay_colour;
+                ctx2.globalAlpha = 0.45;
+                ctx2.fillRect(cordX1[t], cordY1[t], cordX2[t] - cordX1[t], cordY2[t] - cordY1[t]);
+                ctx2.globalAlpha = 0.85;
+                ctx2.strokeStyle = "#fff";
+                ctx2.lineWidth = 1;
+                ctx2.strokeRect(cordX1[t], cordY1[t], cordX2[t] - cordX1[t], cordY2[t] - cordY1[t]);
+                ctx2.globalAlpha = 1;
+            }
+                // guild tag
+                for (var t in cordX1) {
+                await fetch(`https://api.wynncraft.com/public_api.php?action=guildStats&command=${json.territories[ESIClaims[t]].guild.replace(/ /g, "+")}`)
+                .then(res => res.json())
+                .then(gu_data => {
+                    ctx2.font = "10pt Ubuntu";
+                    ctx2.fillStyle = '#fff';
+                    ctx2.strokeStyle = "#000";
+                    ctx2.lineWidth = 0.005;
+                    ctx2.textAlign = "center";
+                    
+                    name_arr[t] = ESIClaims[t].split(' ');
+                    name_arr[t].push(`[ ${gu_data.prefix} ]`);
+                    for (var elem in name_arr) {
+                        var lines = name_arr[elem].length;
+                        switch (lines) {
+                            case 1: 
+                            ctx2.fillText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2));
+                            ctx2.strokeText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2));
+                                break;
+                            case 2:
+                                ctx2.fillText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 7.5));
+                                ctx2.strokeText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 7.5));
+                                ctx2.fillText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 7.5));
+                                ctx2.strokeText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 7.5));
+                                break;
+                            case 3:
+                                ctx2.fillText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 15));
+                                ctx2.strokeText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 15));
+                                ctx2.fillText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines));
+                                ctx2.strokeText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines));
+                                ctx2.fillText(`${name_arr[elem][2]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 15));
+                                ctx2.strokeText(`${name_arr[elem][2]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 15));
+                                break;
+                            case 4:
+                                ctx2.fillText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 22.5));
+                                ctx2.strokeText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 22.5));
+                                ctx2.fillText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 7.5));
+                                ctx2.strokeText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 7.5));
+                                ctx2.fillText(`${name_arr[elem][2]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 7.5));
+                                ctx2.strokeText(`${name_arr[elem][2]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 7.5));
+                                ctx2.fillText(`${name_arr[elem][3]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 22.5));
+                                ctx2.strokeText(`${name_arr[elem][3]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 22.5));
+                                break;
+                            case 5:
+                                ctx2.fillText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 30));
+                                ctx2.strokeText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 30));
+                                ctx2.fillText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 15));
+                                ctx2.strokeText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 15));
+                                ctx2.fillText(`${name_arr[elem][2]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines));
+                                ctx2.strokeText(`${name_arr[elem][2]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines));
+                                ctx2.fillText(`${name_arr[elem][3]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 15));
+                                ctx2.strokeText(`${name_arr[elem][3]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 15));
+                                ctx2.fillText(`${name_arr[elem][4]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 30));
+                                ctx2.strokeText(`${name_arr[elem][4]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 30));
+                                break;
+                            case 6:
+                                ctx2.fillText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 37.5));
+                                ctx2.strokeText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 37.5));
+                                ctx2.fillText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 22.5));
+                                ctx2.strokeText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 22.5));
+                                ctx2.fillText(`${name_arr[elem][2]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 7.5));
+                                ctx2.strokeText(`${name_arr[elem][2]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 75));
+                                ctx2.fillText(`${name_arr[elem][3]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 7.5));
+                                ctx2.strokeText(`${name_arr[elem][3]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 7.5));
+                                ctx2.fillText(`${name_arr[elem][4]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 22.5));
+                                ctx2.strokeText(`${name_arr[elem][4]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 22.5));
+                                ctx2.fillText(`${name_arr[elem][5]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 37.5));
+                                ctx2.strokeText(`${name_arr[elem][5]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 37.5));
+                                break;
+                        }}
+                })
+                .catch(e => console.log(e));
+
+                // resource indicator
+                ctx2.font = "bold 12pt Ubuntu";
+                ctx2.fillStyle = '#fff';
+                ctx2.textAlign = "center";
+                ctx2.fillText(`${resources[t]}`, (cordX1[t] + cordX2[t]) / 2, ((cordY1[t]) - 5));
+            }
+        }
+		var strat = 0;
+		async function get_warrable() {
+			var guild_member_obj = {};
+			var online_players = "";
+			await fetch('https://api.wynncraft.com/public_api.php?action=onlinePlayers')
+			.then(serv => serv.json())
+			.then(data => {
+				online_players = JSON.stringify(data);
+			})
+			await fetch("https://api.wynncraft.com/public_api.php?action=guildStats&command=Empire+of+Sindria")
+			.then(response => response.json())
+			.then((data) => {
+				for (var m in data.members) {
+					if (online_players.includes(data.members[m].name) && data.members[m].rank== "OWNER") strat++;
+					else if (online_players.includes(data.members[m].name) && data.members[m].rank== "CHIEF") strat++;
+					else if (online_players.includes(data.members[m].name) && data.members[m].rank== "STRATEGIST") strat++;
+				}
+			})
+			.catch(e => console.log(e));
+		}
+
+        async function process() {
+            await add();
+            save();
+			await get_warrable();
+			if (lost_count_old != lost_count) client.channels.cache.get('622668875485675532').send({
+				files: ['./buffer.png']
+			})
+			lost_count_old = lost_count;
+			if (lost_count > 2 && alreadyPinged == false && strat == 0) {
+			send_terr();
+			}
+        }
+        process();
+    })
+    .catch(function (error) {
+        console.log(error);
+    });
+}
+
+function territories_feed(message) {
+	fetch('https://api.wynncraft.com/public_api.php?action=territoryList')
+    .then(res => res.json())
+    .then(function (json) {
+        function save() {
+            const buffer = canvas2.toBuffer('image/png');
+            fs.writeFileSync('./buffer.png', buffer);
+        }
+
+		function send_terr() {
+			message.channel.send({
+				files: ['./buffer.png']
+			})
+			.catch(function (error) {
+				message.channel.send('An error has occured.');
+				client.channels.cache.get('784352935198064660').send(`\`\`\`js\n${error}\n\`\`\``);
+				console.log(error);
+			})
+		}
+
+        async function load_base() {
+            loadImage(`./asset/ESI.png`)
+                .then((image) => {
+                    ctx2.drawImage(image, 0, 0, terr_width, terr_height);
+                });
+        }
+        async function add() {
+            await load_base();   //wait for the image to load
+            // trade route
+            await loadImage('./asset/trade_route.png')
+            .then(trimg => {
+            ctx2.globalAlpha = 0.5;
+            ctx2.drawImage(trimg, 0, 0, terr_width, terr_height);
+            ctx2.globalAlpha = 1;
+            })
+            .catch(function (error) {
+                console.log(error)
+            });
+            var name_arr = [];
+            for (var t in cordX1) {
+                //check owner
+                var terr_overlay_colour = "#ffffff";
+                var lost = false;
+                if (json.territories[`${ESIClaims[t]}`].guild != "Empire of Sindria" && !allies.includes(json.territories[`${ESIClaims[t]}`].guild)) {
+                    lost = true;
+                    terr_overlay_colour = "#ff2934";
+                }
+                else if (allies.includes(json.territories[`${ESIClaims[t]}`].guild)) {
+                    terr_overlay_colour = "#69c5ff";
+                }
+                else if (json.territories[`${ESIClaims[t]}`].guild == "Empire of Sindria") {
+                    terr_overlay_colour = "#94ffb1";
+                }
+                // fill rect overlay
+                ctx2.fillStyle = terr_overlay_colour;
+                ctx2.globalAlpha = 0.45;
+                ctx2.fillRect(cordX1[t], cordY1[t], cordX2[t] - cordX1[t], cordY2[t] - cordY1[t]);
+                ctx2.globalAlpha = 0.85;
+                ctx2.strokeStyle = "#fff";
+                ctx2.lineWidth = 1;
+                ctx2.strokeRect(cordX1[t], cordY1[t], cordX2[t] - cordX1[t], cordY2[t] - cordY1[t]);
+                ctx2.globalAlpha = 1;
+            }
+                // guild tag
+                for (var t in cordX1) {
+                console.log(ESIClaims[t]);
+                await fetch(`https://api.wynncraft.com/public_api.php?action=guildStats&command=${json.territories[ESIClaims[t]].guild.replace(/ /g, "+")}`)
+                .then(res => res.json())
+                .then(gu_data => {
+                    console.log(gu_data.prefix);
+                    ctx2.font = "10pt Ubuntu";
+                    ctx2.fillStyle = '#fff';
+                    ctx2.strokeStyle = "#000";
+                    ctx2.lineWidth = 0.005;
+                    ctx2.textAlign = "center";
+                    
+                    name_arr[t] = ESIClaims[t].split(' ');
+                    name_arr[t].push(`[ ${gu_data.prefix} ]`);
+                    console.log(name_arr);
+                    for (var elem in name_arr) {
+                        var lines = name_arr[elem].length;
+                        switch (lines) {
+                            case 1: 
+                            ctx2.fillText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2));
+                            ctx2.strokeText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2));
+                                break;
+                            case 2:
+                                ctx2.fillText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 7.5));
+                                ctx2.strokeText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 7.5));
+                                ctx2.fillText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 7.5));
+                                ctx2.strokeText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 7.5));
+                                break;
+                            case 3:
+                                ctx2.fillText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 15));
+                                ctx2.strokeText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 15));
+                                ctx2.fillText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines));
+                                ctx2.strokeText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines));
+                                ctx2.fillText(`${name_arr[elem][2]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 15));
+                                ctx2.strokeText(`${name_arr[elem][2]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 15));
+                                break;
+                            case 4:
+                                ctx2.fillText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 22.5));
+                                ctx2.strokeText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 22.5));
+                                ctx2.fillText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 7.5));
+                                ctx2.strokeText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 7.5));
+                                ctx2.fillText(`${name_arr[elem][2]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 7.5));
+                                ctx2.strokeText(`${name_arr[elem][2]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 7.5));
+                                ctx2.fillText(`${name_arr[elem][3]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 22.5));
+                                ctx2.strokeText(`${name_arr[elem][3]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 22.5));
+                                break;
+                            case 5:
+                                ctx2.fillText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 30));
+                                ctx2.strokeText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 30));
+                                ctx2.fillText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 15));
+                                ctx2.strokeText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 15));
+                                ctx2.fillText(`${name_arr[elem][2]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines));
+                                ctx2.strokeText(`${name_arr[elem][2]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines));
+                                ctx2.fillText(`${name_arr[elem][3]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 15));
+                                ctx2.strokeText(`${name_arr[elem][3]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 15));
+                                ctx2.fillText(`${name_arr[elem][4]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 30));
+                                ctx2.strokeText(`${name_arr[elem][4]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 30));
+                                break;
+                            case 6:
+                                ctx2.fillText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 37.5));
+                                ctx2.strokeText(`${name_arr[elem][0]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 37.5));
+                                ctx2.fillText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 22.5));
+                                ctx2.strokeText(`${name_arr[elem][1]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 22.5));
+                                ctx2.fillText(`${name_arr[elem][2]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 7.5));
+                                ctx2.strokeText(`${name_arr[elem][2]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines - 75));
+                                ctx2.fillText(`${name_arr[elem][3]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 7.5));
+                                ctx2.strokeText(`${name_arr[elem][3]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 7.5));
+                                ctx2.fillText(`${name_arr[elem][4]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 22.5));
+                                ctx2.strokeText(`${name_arr[elem][4]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 22.5));
+                                ctx2.fillText(`${name_arr[elem][5]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 37.5));
+                                ctx2.strokeText(`${name_arr[elem][5]}`, (cordX1[elem] + cordX2[elem]) / 2, ((cordY2[elem] + cordY1[elem]) / 2) + (lines + 37.5));
+                                break;
+                        }}
+                })
+                .catch(e => console.log(e));
+
+                // resource indicator
+
+                ctx2.font = "bold 12pt Ubuntu";
+                ctx2.fillStyle = '#fff';
+                ctx2.textAlign = "center";
+                ctx2.fillText(`${resources[t]}`, (cordX1[t] + cordX2[t]) / 2, ((cordY1[t]) - 5));
+            }
+        }
+        async function process() {
+            await add();
+            save();
+			send_terr();
+        }
+        process();
+    })
+    .catch(function (error) {
+        console.log(error);
+    });
+}
+
+var liveFeed_intervalID = {}
+function setupLiveFeed(message) {
+	liveFeed_intervalID = setInterval(territories_feed(message), 60000);
+}
+
+function haltFeed(message) {
+	clearInterval(liveFeed_intervalID);
 }
 
 function button(message) {
@@ -1176,6 +2219,34 @@ function awaitInteractionRole(message) {
 	});
 }
 
+// get playtime
+async function get_guild_member_playtime() {
+	var guild_members = [];
+	var guild_playtime = [];
+	await fetch('https://api.wynncraft.com/public_api.php?action=guildStats&command=Empire+of+Sindria')
+	.then(response => response.json())
+	.then(gu_obj => {
+		for (var n in gu_obj.members) {
+			guild_members.push(gu_obj.members[n].uuid);
+			console.log(guild_members);
+		}
+	})
+	.catch(console.log);
+	for (var owo in guild_members) {
+		await fetch(`https://api.wynncraft.com/v2/player/${guild_members[owo]}/stats`)
+		.then(res => res.json())
+		.then(function (json) {
+			guild_playtime.push([json.data[0].username, json.data[0].meta.playtime/60*4.7]);
+		})
+		.catch(console.log);
+		guild_playtime.sort(function (a, b) {
+			return b[1] - a[1];
+		});
+	}
+	fs.writeFileSync(`./playtime/${Math.ceil(Date.now() / 86400000)}.txt`, JSON.stringify(guild_playtime));
+
+}
+
 function get_territory() {
 	if (ESIClaims.length < 1 || terrClaimPingEnabled == false) {
 		return;
@@ -1203,16 +2274,12 @@ function get_territory() {
 	}
 }
 
-function addPingCounter() {
-	alreadyPinged = true;
-}
-
 function resetPingCounter() {
 	alreadyPinged = false;
 }
 
 function ping(terrData, count) {
-	if (terrClaimPingEnabled == false) return;
+	if (!terrClaimPingEnabled) return;
 	else {
 	const Ping = new Discord.MessageEmbed()
 		.setTitle('Territory manager - Detected missing claims (Temporary)')
@@ -1224,15 +2291,19 @@ function ping(terrData, count) {
 	}
 }
 
-setInterval(guildMemberUpdateListener, 60000);
-setInterval(get_territory, 300000);
-setInterval(resetPingCounter, 86400000);
+//setInterval(guildMemberUpdateListener, 60000);
+var claim_ping_intervalID = setInterval(claim_ping, 120000);
+setInterval(data_caching, 900000);
+setInterval(get_guild_member_playtime, 86400000);
 
 //event listener 'message' 
 client.on('message', m => {
 	console.log(`[ ${m.author.username} ] >> ${m.content}`);
 });
 
-// DSC client [ NOT discord.js client ]
-
-client.login();
+var token = fs.readFileSync('./token.txt', {encoding:'utf8', flag:'r'});
+client.login(token)
+.then(token = "")
+.catch(function (error) {
+	console.log('Login failed :' + error);
+});
